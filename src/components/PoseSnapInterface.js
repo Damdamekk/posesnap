@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Camera, RotateCcw, Scan } from 'lucide-react'
+import { Camera, RotateCcw, Scan, Upload } from 'lucide-react'
 
 export default function PoseSnapInterface() {
   const [capturedImage, setCapturedImage] = useState(null)
   const [detectedPose, setDetectedPose] = useState(null)
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   const startCamera = async () => {
     try {
@@ -39,14 +40,45 @@ export default function PoseSnapInterface() {
     setDetectedPose(null)
   }
 
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setCapturedImage(e.target.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const triggerFileInput = () => {
+    fileInputRef.current.click()
+  }
+
   useEffect(() => {
     startCamera()
-    // Set full screen styles
     document.documentElement.style.height = '100%'
     document.body.style.height = '100%'
     document.body.style.margin = '0'
     document.body.style.padding = '0'
   }, [])
+
+  const buttonStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '1rem 2rem',
+    backgroundColor: '#8c7a5b',
+    color: 'white',
+    border: 'none',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+    transition: 'transform 0.1s',
+    WebkitTapHighlightColor: 'transparent'
+  }
 
   return (
     <div style={{
@@ -57,7 +89,6 @@ export default function PoseSnapInterface() {
       backgroundColor: '#d2c8b2',
       position: 'relative'
     }}>
-      {/* Header */}
       <header style={{
         backgroundColor: '#b8a88f',
         padding: '1rem',
@@ -67,14 +98,12 @@ export default function PoseSnapInterface() {
         <h1 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>PoseSnap</h1>
       </header>
 
-      {/* Main content area */}
       <main style={{
         flex: 1,
         position: 'relative',
         backgroundColor: '#000',
         overflow: 'hidden'
       }}>
-        {/* Video/Image container */}
         <div style={{ width: '100%', height: '100%', position: 'relative' }}>
           {capturedImage ? (
             <img 
@@ -100,7 +129,6 @@ export default function PoseSnapInterface() {
           )}
         </div>
 
-        {/* Controls overlay */}
         <div style={{
           position: 'fixed',
           bottom: '2rem',
@@ -110,47 +138,11 @@ export default function PoseSnapInterface() {
           gap: '1rem',
           zIndex: 1000
         }}>
-          <button 
-            onClick={resetCamera}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '1rem 2rem',
-              backgroundColor: '#8c7a5b',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-              transition: 'transform 0.1s',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-          >
+          <button onClick={resetCamera} style={buttonStyle}>
             <RotateCcw size={24} />
             Reset
           </button>
-          <button 
-            onClick={capturedImage ? analyzePose : takePicture}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '1rem 2rem',
-              backgroundColor: '#8c7a5b',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-              transition: 'transform 0.1s',
-              WebkitTapHighlightColor: 'transparent'
-            }}
-          >
+          <button onClick={capturedImage ? analyzePose : takePicture} style={buttonStyle}>
             {capturedImage ? (
               <>
                 <Scan size={24} />
@@ -163,12 +155,22 @@ export default function PoseSnapInterface() {
               </>
             )}
           </button>
+          <button onClick={triggerFileInput} style={buttonStyle}>
+            <Upload size={24} />
+            Wgraj zdjęcie
+          </button>
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileUpload} 
+            accept="image/*" 
+            style={{ display: 'none' }}
+          />
         </div>
 
         <canvas ref={canvasRef} style={{ display: 'none' }} width="640" height="480" />
       </main>
 
-      {/* Results panel */}
       {detectedPose && (
         <div style={{
           position: 'fixed',
